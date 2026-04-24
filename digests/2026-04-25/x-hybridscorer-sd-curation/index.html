@@ -3,7 +3,16 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>今日のニュース — AI News Digest</title>
+<title>HybridScorer：SD大量生成後の自動選別ツール（プロンプト一致度 × 美的品質） — AI News Digest</title>
+
+<meta property="og:title" content="HybridScorer：SD大量生成後の自動選別ツール（プロンプト一致度 × 美的品質）">
+<meta property="og:description" content="Stable Diffusion で数百枚生成した後の選別作業を自動化するOSSツール紹介。
+プロンプト一致度と ImageReward（美的品質）の2軸でスコアリングし、
+ローカルGPUで完全オフライン動作。仮想環境（venv）が依存を自動解決するため、
+Python環境構築の手間なしで導入できる。">
+
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -390,181 +399,160 @@ img { max-width: 100%; height: auto; display: block; }
 <body>
   <header class="site-header">
     <div class="container">
-      <a href="index.html" class="brand">AI News Digest</a>
+      <a href="../../../index.html" class="brand">AI News Digest</a>
       <nav class="nav-links">
-        <a href="index.html">Index</a>
+        <a href="../../../index.html">Index</a>
       </nav>
     </div>
   </header>
 
   <main class="site-main">
     
-<div class="container">
-  <div class="hero-block">
-    <h1 class="hero-title">AI News Digest</h1>
-    <p class="hero-tagline">画像生成・動画生成・アニメ系AIニュースの日次まとめ。10件の記事を収録。</p>
-  </div>
+<article class="article">
+  <div class="container narrow">
+    <div class="breadcrumb">
+      <a href="../../../index.html">← Index</a>
+    </div>
 
-  
-  <section class="date-group">
-    <h2 class="date-heading">2026-04-25</h2>
-    <div class="card-grid">
+    <div class="article-meta">
       
-      <a class="card" href="digests/2026-04-25/aicu-license-notes/index.html">
-        
-        <div class="card-image">
-          <img src="digests/2026-04-25/aicu-license-notes/images/cover.png" alt="" loading="lazy" />
-        </div>
-        
-        <div class="card-body">
-          <div class="card-meta">AICU MEDIA</div>
-          <h3 class="card-title">生成AIライセンス入門：「無料で使える」と「自由に使える」を分けてモデル別に判断する</h3>
-          <p class="card-tagline">AIキャラ開発スタートガイドのライセンス編。
-Stable Diffusion / Illustrious-XL / Flux.1 等の主要モデルを対象に、
-商用利用・派生モデル・二次創作の可否という3軸で整理する入門記事。
-「無料で使える」と「自由に使える」は違うという主旨。</p>
-        </div>
-      </a>
+      <a href="https://x.com/aiaicreate/status/2042103749909295566" target="_blank" rel="noopener" class="meta-link">X / @aiaicreate ↗</a>
       
-      <a class="card" href="digests/2026-04-25/comfyui-v019-series/index.html">
-        
-        <div class="card-body">
-          <div class="card-meta">COMFYUI RELEASES</div>
-          <h3 class="card-title">ComfyUI v0.19 系が SeeDance 2.0 / Ace Step 1.5 XL / Ernie Image / WAN2.7 を一気に追加、動画・画像・音声のモデル対応が大幅拡張</h3>
-          <p class="card-tagline">4日間で4バージョン連続リリース。
-特に v0.19.0 は 65+ PRs の大型更新で、SeeDance 2.0 / Ace Step 1.5 XL /
-Ernie Image / Qwen3.5 / WAN2.7 / LTX2 / Tencent3D などのノードが一気に…</p>
-        </div>
-      </a>
-      
-      <a class="card" href="digests/2026-04-25/x-hybridscorer-sd-curation/index.html">
-        
-        <div class="card-body">
-          <div class="card-meta">X / @aiaicreate</div>
-          <h3 class="card-title">HybridScorer：SD大量生成後の自動選別ツール（プロンプト一致度 × 美的品質）</h3>
-          <p class="card-tagline">Stable Diffusion で数百枚生成した後の選別作業を自動化するOSSツール紹介。
-プロンプト一致度と ImageReward（美的品質）の2軸でスコアリングし、
+      <span>2026-04-24</span>
+    </div>
+
+    <h1 class="article-title">HybridScorer：SD大量生成後の自動選別ツール（プロンプト一致度 × 美的品質）</h1>
+
+    <p class="article-tagline">
+      Stable Diffusion で数百枚生成した後の<strong>選別作業を自動化</strong>するOSSツール紹介。
+<strong>プロンプト一致度</strong>と <strong>ImageReward</strong>（美的品質）の2軸でスコアリングし、
 ローカルGPUで完全オフライン動作。仮想環境（venv）が依存を自動解決するため、
-Python環境構築…</p>
-        </div>
-      </a>
-      
-    </div>
-  </section>
-  
-  <section class="date-group">
-    <h2 class="date-heading">2026-04-24</h2>
-    <div class="card-grid">
-      
-      <a class="card" href="digests/2026-04-24/aicu-ai-character-startup-guide/index.html">
-        
-        <div class="card-image">
-          <img src="digests/2026-04-24/aicu-ai-character-startup-guide/images/cover.png" alt="" loading="lazy" />
-        </div>
-        
-        <div class="card-body">
-          <div class="card-meta">AICU MEDIA</div>
-          <h3 class="card-title">AIキャラ開発の生成AI、4形態×主要ツール早見マップ</h3>
-          <p class="card-tagline">AIキャラ開発に使える生成AIの4つの利用形態
-（クラウド型 / ローカル実行型 / API連携型 / クラウドGPU型）と
-主要ツールを横断比較した入門ガイド。
-目的・スキル・予算に応じた選び方の指針を提示する。</p>
-        </div>
-      </a>
-      
-      <a class="card" href="digests/2026-04-24/aicu-cover-illust-contest/index.html">
-        
-        <div class="card-image">
-          <img src="digests/2026-04-24/aicu-cover-illust-contest/images/cover.png" alt="" loading="lazy" />
-        </div>
-        
-        <div class="card-body">
-          <div class="card-meta">AICU MEDIA</div>
-          <h3 class="card-title">AICU表紙イラストコンテスト「#AIこどもの日」予選5作品が公開、結果発表は5月号</h3>
-          <p class="card-tagline">AICU media が2026年4月に開催したAIイラストコンテスト
-「#AIこどもの日」の予選通過5作品を紹介する記事。
-ComfyUI / Midjourney / ChatGPT などを自由に使い、
-こどもの日をテーマにした「季節感あるキャラクター表現」を競う。</p>
-        </div>
-      </a>
-      
-      <a class="card" href="digests/2026-04-24/arxiv-linear-image-generation/index.html">
-        
-        <div class="card-image">
-          <img src="digests/2026-04-24/arxiv-linear-image-generation/images/fig1-teaser.png" alt="" loading="lazy" />
-        </div>
-        
-        <div class="card-body">
-          <div class="card-meta">arXiv cs.CV</div>
-          <h3 class="card-title">DiTで露出ブラケット列を生成、テキストから線形画像をダイナミックレンジ保ったまま合成</h3>
-          <p class="card-tagline">既存の生成モデルがディスプレイ参照型 (sRGB) 画像しか作れない問題に対し、
-線形画像（シーン参照型）を露出ブラケット列として表現し、
-DiTベースの Flow-matching でテキストから生成する手法。
-後処理での編集自由度が大幅に向上する。</p>
-        </div>
-      </a>
-      
-      <a class="card" href="digests/2026-04-24/x-bg-consistency-kling-gpt-image/index.html">
-        
-        <div class="card-body">
-          <div class="card-meta">X / @kan_mi_no9</div>
-          <h3 class="card-title">GPT Image 2.0 × Kling 3.0 Omni で「アングルが変わっても背景一貫性」を保つ4段ワークフロー</h3>
-          <p class="card-tagline">AIアニメ/ドラマで頭痛だった「アングルが変わると背景・位置が崩れる」問題を、
-Midjourney → ChatGPTで「場所の設定シート」生成 → GPT Image 2.0 → Kling 3.0 Omni の
-4段ワークフローでほぼ解決。投稿当日で 1.7k+ view…</p>
-        </div>
-      </a>
-      
-      <a class="card" href="digests/2026-04-24/x-kling-motion-only-prompt/index.html">
-        
-        <div class="card-body">
-          <div class="card-meta">X / @CryptoKyoto_nft 他</div>
-          <h3 class="card-title">Kling 3.0 アニメ生成の鉄則：「動きだけプロンプト、見た目は参照画像に任せる」</h3>
-          <p class="card-tagline">Kling 3.0 でアニメを動かすときの基本ルール。
-プロンプトには 動きの記述だけ を書き、
-キャラの見た目・スタイルは 参照画像 に完全に委ねる。
-言葉と画像の役割を明確に分けるだけで、崩れが激減し品質が安定する。</p>
-        </div>
-      </a>
-      
-      <a class="card" href="digests/2026-04-24/x-storyboard-seedance-gpt-image/index.html">
-        
-        <div class="card-body">
-          <div class="card-meta">X / @tanabe_fragm 他</div>
-          <h3 class="card-title">GPT Image 2.0 でストーリーボード → Seedance 2.0 で動画化、目的を入れるだけで品質激変する2ステップ</h3>
-          <p class="card-tagline">シンプルなアニメ動画を作るのに最適な 2ステップ手法。
-GPT Image 2.0 でセリフ・キャラ設定シート付きストーリーボードを生成し、
-Seedance 2.0 で「忠実に動画化」と指示するだけ。
-プロンプトに 「このストーリーの目的は〜」を入れるだけでクオリティが段違い。</p>
-        </div>
-      </a>
-      
-    </div>
-  </section>
-  
-  <section class="date-group">
-    <h2 class="date-heading">2026-04-23</h2>
-    <div class="card-grid">
-      
-      <a class="card" href="digests/2026-04-23/nanobanana2-vs-gpt-image-2/index.html">
-        
-        <div class="card-image">
-          <img src="digests/2026-04-23/nanobanana2-vs-gpt-image-2/images/nanobanana2-vs-gpt-image-2.png" alt="" loading="lazy" />
-        </div>
-        
-        <div class="card-body">
-          <div class="card-meta">AICU MEDIA</div>
-          <h3 class="card-title">キャラ表情シート 6面グリッド生成、現世代3モデルが揃って成功率100%</h3>
-          <p class="card-tagline">デザイン再現度なら GPT Image 2、コスト効率なら Gemini 3.1 Flash。
-3×2 グリッド成功率は3モデル揃って 100% に到達し、
-選択は「再現度 vs コスト」の住み分け段階に入った。</p>
-        </div>
-      </a>
-      
-    </div>
-  </section>
-  
+Python環境構築の手間なしで導入できる。
+
+    </p>
+
+    
+
+    <div class="tldr">
+      <div class="tldr-label">TL;DR</div>
+      <div class="tldr-text">SDで業務的に大量生成する場合、<strong>選別がボトルネック</strong>になる。
+HybridScorer は CLIP 系のプロンプト一致度と ImageReward の美的品質スコアを
+合成して<strong>自動ランキング</strong>するツール。
+全処理がローカル完結で、生成物が外部に出ないため業務利用にも向く。
 </div>
+    </div>
+
+    
+    <a class="primary-source-cta" href="https://x.com/aiaicreate/status/2042103749909295566" target="_blank" rel="noopener">
+      <span>元記事を読む</span>
+      <span class="cta-meta">X / @aiaicreate</span>
+      <span class="cta-arrow">→</span>
+    </a>
+    
+
+    
+    <div class="highlights">
+      
+      <div class="highlight-cell">
+        <div class="highlight-value">2軸</div>
+        <div class="highlight-label">自動スコアリング</div>
+        <div class="highlight-sub">プロンプト一致 × 美的品質</div>
+      </div>
+      
+      <div class="highlight-cell">
+        <div class="highlight-value">0円</div>
+        <div class="highlight-label">OSS・ローカル動作</div>
+        <div class="highlight-sub">外部API不使用・完全オフライン</div>
+      </div>
+      
+      <div class="highlight-cell">
+        <div class="highlight-value">v2.2</div>
+        <div class="highlight-label">顔認識・タグマッチ追加</div>
+        <div class="highlight-sub">選別軸が更に拡張</div>
+      </div>
+      
+    </div>
+    
+
+    
+    <section class="article-section">
+      <h2 class="section-label">Setting / Conditions</h2>
+      <table class="setting-table">
+        <tbody>
+          
+          <tr>
+            <th>用途</th>
+            <td><strong>SD で大量生成した画像の選別</strong>を自動化（数百枚〜のスクリーニング）</td>
+          </tr>
+          
+          <tr>
+            <th>評価軸</th>
+            <td><strong>プロンプト一致度</strong>（CLIP系）+ <strong>ImageReward</strong>（美的品質）の2軸スコア</td>
+          </tr>
+          
+          <tr>
+            <th>動作環境</th>
+            <td><strong>ローカルGPU</strong>。venv で依存を自動インストール、Python環境構築不要</td>
+          </tr>
+          
+          <tr>
+            <th>ライセンス・配布</th>
+            <td><strong>無料・オープンソース</strong>。全処理オフラインでプライバシー重視設計</td>
+          </tr>
+          
+          <tr>
+            <th>v2.2 の追加機能</th>
+            <td><strong>タグマッチ</strong>（特定キーワード一致）と<strong>顔認識</strong>による絞り込み</td>
+          </tr>
+          
+          <tr>
+            <th>制限・議論点</th>
+            <td><strong>macOS非対応</strong>。Redditでは評価基準（特にImageReward）の信頼性に賛否両論</td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </section>
+    
+
+    
+
+    
+    <section class="article-section">
+      <h2 class="section-label">Takeaways</h2>
+      <ul class="bullets">
+        
+        <li><strong>venv 自動インストール</strong>方式により、依存解決でつまずきがちな初心者でも導入が容易</li>
+        
+        <li><strong>業務で数百枚生成する人向け</strong>。手動選別の時間短縮効果が大きい</li>
+        
+        <li>ImageReward の<strong>美的判断は人間と完全一致するわけではない</strong>ので、上位N件を再確認するワークフロー推奨</li>
+        
+      </ul>
+    </section>
+    
+
+    
+
+    <footer class="article-footer">
+      
+      <h2 class="section-label">Source</h2>
+      <ul class="source-list">
+        
+        <li><a href="https://x.com/aiaicreate/status/2042103749909295566" target="_blank" rel="noopener">@aiaicreate — HybridScorer 紹介ポスト</a></li>
+        
+      </ul>
+      
+
+      
+      <div class="keywords">
+        <span class="label">Keywords</span>
+        <span class="tag">Stable Diffusion</span><span class="tag">HybridScorer</span><span class="tag">画像選別</span><span class="tag">ImageReward</span><span class="tag">CLIP</span><span class="tag">OSS</span><span class="tag">ローカルGPU</span><span class="tag">X post</span>
+      </div>
+      
+    </footer>
+  </div>
+</article>
 
   </main>
 
