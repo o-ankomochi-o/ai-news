@@ -1,0 +1,576 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DiTで露出ブラケット列を生成、テキストから線形画像をダイナミックレンジ保ったまま合成 — AI News Digest</title>
+
+<meta property="og:title" content="DiTで露出ブラケット列を生成、テキストから線形画像をダイナミックレンジ保ったまま合成">
+<meta property="og:description" content="既存の生成モデルがディスプレイ参照型 (sRGB) 画像しか作れない問題に対し、
+線形画像（シーン参照型）を露出ブラケット列として表現し、
+DiTベースの Flow-matching でテキストから生成する手法。
+後処理での編集自由度が大幅に向上する。">
+<meta property="og:image" content="images/fig1-teaser.png">
+<meta property="og:type" content="article">
+<meta name="twitter:card" content="summary_large_image">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #FAFAF7;
+  --paper: #FFFFFF;
+  --ink: #0F172A;
+  --ink-soft: #1E293B;
+  --muted: #64748B;
+  --accent: #1D4ED8;
+  --rule: #CBD5E1;
+  --rule-soft: #E2E8F0;
+  --card-bg: #FFFFFF;
+  --hover-bg: #F8FAFC;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0B1220;
+    --paper: #111827;
+    --ink: #F1F5F9;
+    --ink-soft: #CBD5E1;
+    --muted: #94A3B8;
+    --accent: #60A5FA;
+    --rule: #334155;
+    --rule-soft: #1F2937;
+    --card-bg: #111827;
+    --hover-bg: #1F2937;
+  }
+}
+
+html, body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Inter", "Yu Gothic", "Noto Sans JP", "Hiragino Kaku Gothic ProN", system-ui, sans-serif;
+  font-feature-settings: "palt", "kern";
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+a { color: inherit; text-decoration: none; }
+img { max-width: 100%; height: auto; display: block; }
+
+.container { max-width: 1080px; margin: 0 auto; padding: 0 24px; }
+.container.narrow { max-width: 720px; }
+
+/* ===== Header ===== */
+.site-header {
+  background: var(--paper);
+  border-bottom: 1px solid var(--rule-soft);
+  padding: 14px 0;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  backdrop-filter: blur(8px);
+}
+.site-header .container { display: flex; justify-content: space-between; align-items: center; }
+.brand {
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 13px;
+  color: var(--ink);
+}
+.nav-links a {
+  font-size: 13px;
+  color: var(--muted);
+  margin-left: 20px;
+  font-weight: 500;
+}
+.nav-links a:hover { color: var(--ink); }
+
+.site-main { min-height: 60vh; padding: 48px 0 80px; }
+
+.site-footer {
+  background: var(--paper);
+  border-top: 1px solid var(--rule-soft);
+  padding: 28px 0;
+  font-size: 12px;
+  color: var(--muted);
+  text-align: center;
+}
+
+/* ===== Hero block (index) ===== */
+.hero-block { text-align: center; margin-bottom: 64px; padding: 24px 0; }
+.hero-title {
+  font-size: 52px;
+  font-weight: 800;
+  letter-spacing: -0.025em;
+  margin-bottom: 18px;
+  line-height: 1.1;
+}
+.hero-tagline {
+  font-size: 17px;
+  color: var(--muted);
+  max-width: 560px;
+  margin: 0 auto;
+  line-height: 1.65;
+}
+
+/* ===== Date group / Cards ===== */
+.date-group { margin-bottom: 64px; }
+.date-heading {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  margin-bottom: 24px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--rule);
+}
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+.card {
+  background: var(--card-bg);
+  border: 1px solid var(--rule-soft);
+  border-radius: 10px;
+  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+  display: flex;
+  flex-direction: column;
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 28px rgba(15, 23, 42, 0.08);
+  border-color: var(--rule);
+}
+.card-image { width: 100%; aspect-ratio: 16 / 9; background: var(--hover-bg); overflow: hidden; }
+.card-image img { width: 100%; height: 100%; object-fit: cover; }
+.card-body { padding: 20px 22px 24px; flex: 1; display: flex; flex-direction: column; }
+.card-meta {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.card-title {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.4;
+  letter-spacing: -0.005em;
+  margin-bottom: 10px;
+  color: var(--ink);
+}
+.card-tagline {
+  font-size: 13.5px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.card-tagline strong { color: var(--ink-soft); font-weight: 600; }
+
+/* ===== Article detail ===== */
+.breadcrumb { font-size: 13px; color: var(--muted); margin-bottom: 32px; }
+.breadcrumb a { color: var(--muted); }
+.breadcrumb a:hover { color: var(--accent); }
+
+.article-meta {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--ink);
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 32px;
+}
+.article-title {
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1.18;
+  letter-spacing: -0.02em;
+  margin-bottom: 20px;
+  color: var(--ink);
+}
+.article-tagline {
+  font-size: 18px;
+  color: var(--ink-soft);
+  line-height: 1.75;
+  margin-bottom: 32px;
+}
+.article-tagline strong { font-weight: 700; color: var(--ink); }
+
+.hero-figure { margin: 32px 0 40px; border-radius: 8px; overflow: hidden; }
+.hero-figure img { width: 100%; height: auto; }
+
+.meta-link {
+  color: inherit;
+  border-bottom: 1px dotted var(--rule);
+  padding-bottom: 1px;
+}
+.meta-link:hover {
+  color: var(--accent);
+  border-bottom-color: var(--accent);
+}
+
+.primary-source-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin: 4px 0 44px;
+  padding: 14px 22px;
+  background: var(--accent);
+  color: #FFFFFF;
+  border-radius: 6px;
+  font-weight: 600;
+  font-size: 14px;
+  letter-spacing: 0.01em;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+.primary-source-cta:hover {
+  opacity: 0.92;
+  transform: translateY(-1px);
+}
+.primary-source-cta .cta-meta {
+  font-weight: 400;
+  opacity: 0.82;
+  font-size: 13px;
+  font-family: "Inter", system-ui, sans-serif;
+  letter-spacing: 0.04em;
+}
+.primary-source-cta .cta-arrow {
+  font-size: 17px;
+  margin-left: auto;
+}
+
+/* ===== TL;DR callout ===== */
+.tldr {
+  border-left: 3px solid var(--accent);
+  padding: 4px 0 4px 22px;
+  margin: 32px 0 40px;
+}
+.tldr-label {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+.tldr-text { font-size: 16px; line-height: 1.75; color: var(--ink); }
+.tldr-text strong { font-weight: 700; }
+
+/* ===== Highlights ===== */
+.highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 24px;
+  margin: 32px 0 48px;
+}
+.highlight-cell { padding-top: 14px; border-top: 2px solid var(--ink); }
+.highlight-value {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 38px;
+  font-weight: 800;
+  color: var(--accent);
+  line-height: 1;
+  margin-bottom: 10px;
+  letter-spacing: -0.025em;
+}
+.highlight-label { font-size: 14px; font-weight: 700; margin-bottom: 5px; }
+.highlight-sub { font-size: 12px; color: var(--muted); line-height: 1.55; }
+.highlight-sub strong { color: var(--ink-soft); font-weight: 600; }
+
+/* ===== Section label ===== */
+.article-section { margin: 44px 0; }
+.section-label {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  color: var(--muted);
+  margin-bottom: 18px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--rule);
+}
+
+/* ===== Setting table ===== */
+.setting-table { width: 100%; border-collapse: collapse; font-size: 14.5px; }
+.setting-table tr { border-bottom: 1px solid var(--rule-soft); }
+.setting-table tr:last-child { border-bottom: none; }
+.setting-table th, .setting-table td { padding: 14px 0; text-align: left; vertical-align: top; line-height: 1.6; }
+.setting-table th {
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 12px;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  width: 150px;
+  padding-right: 24px;
+}
+.setting-table td strong { font-weight: 700; }
+
+/* ===== Chart ===== */
+.chart-frame { width: 100%; }
+.chart-frame svg { width: 100%; height: auto; max-height: 320px; display: block; }
+
+/* ===== Bullets ===== */
+.bullets { list-style: none; padding: 0; margin: 0; }
+.bullets li { font-size: 16px; line-height: 1.75; padding: 9px 0 9px 30px; position: relative; }
+.bullets li::before {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 19px;
+  width: 14px;
+  height: 1px;
+  background: var(--accent);
+}
+.bullets strong { font-weight: 700; }
+
+/* ===== Figures ===== */
+.figure { margin: 28px 0 36px; border-radius: 6px; overflow: hidden; }
+.figure img { width: 100%; background: var(--hover-bg); }
+.figure figcaption {
+  font-size: 13px;
+  color: var(--muted);
+  margin-top: 10px;
+  font-style: italic;
+  line-height: 1.65;
+}
+.figure figcaption strong { color: var(--ink-soft); font-style: normal; font-weight: 600; }
+
+/* ===== Article footer ===== */
+.article-footer {
+  margin-top: 72px;
+  padding-top: 32px;
+  border-top: 1px solid var(--ink);
+}
+.source-list { list-style: none; padding: 0; }
+.source-list li { font-size: 14px; margin-bottom: 6px; }
+.source-list a { color: var(--accent); word-break: break-all; }
+.source-list a:hover { text-decoration: underline; }
+
+.keywords { margin-top: 24px; font-size: 13px; color: var(--muted); }
+.keywords .label {
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  margin-right: 12px;
+  color: var(--ink);
+}
+.keywords .tag {
+  display: inline-block;
+  background: var(--rule-soft);
+  padding: 4px 10px;
+  border-radius: 4px;
+  margin: 3px 4px 3px 0;
+  color: var(--ink);
+  font-size: 12px;
+}
+
+/* ===== Responsive ===== */
+@media (max-width: 640px) {
+  .container { padding: 0 18px; }
+  .article-title { font-size: 28px; }
+  .article-tagline { font-size: 16px; }
+  .hero-title { font-size: 38px; }
+  .card-grid { grid-template-columns: 1fr; }
+  .setting-table th { width: 110px; padding-right: 14px; font-size: 11px; }
+  .article-meta { flex-direction: column; gap: 6px; align-items: flex-start; }
+  .highlights { grid-template-columns: 1fr 1fr; gap: 16px; }
+}
+</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="container">
+      <a href="../../../index.html" class="brand">AI News Digest</a>
+      <nav class="nav-links">
+        <a href="../../../index.html">Index</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
+    
+<article class="article">
+  <div class="container narrow">
+    <div class="breadcrumb">
+      <a href="../../../index.html">← Index</a>
+    </div>
+
+    <div class="article-meta">
+      
+      <a href="https://arxiv.org/abs/2604.21008" target="_blank" rel="noopener" class="meta-link">arXiv cs.CV ↗</a>
+      
+      <span>2026-04-22</span>
+    </div>
+
+    <h1 class="article-title">DiTで露出ブラケット列を生成、テキストから線形画像をダイナミックレンジ保ったまま合成</h1>
+
+    <p class="article-tagline">
+      既存の生成モデルがディスプレイ参照型 (sRGB) 画像しか作れない問題に対し、
+<strong>線形画像（シーン参照型）を露出ブラケット列として表現</strong>し、
+DiTベースの Flow-matching でテキストから生成する手法。
+後処理での編集自由度が大幅に向上する。
+
+    </p>
+
+    
+    <figure class="hero-figure">
+      <img src="images/fig1-teaser.png" alt="" />
+    </figure>
+    
+
+    <div class="tldr">
+      <div class="tldr-label">TL;DR</div>
+      <div class="tldr-text">既存の生成モデルがディスプレイ参照型 (sRGB) 画像しか作れない問題に対し、
+<strong>線形画像（シーン参照型）を露出ブラケット列として表現</strong>し、
+DiTベースの Flow-matching でテキストから生成する手法。
+後処理での編集自由度が大幅に向上する。
+</div>
+    </div>
+
+    
+    <a class="primary-source-cta" href="https://arxiv.org/abs/2604.21008" target="_blank" rel="noopener">
+      <span>元記事を読む</span>
+      <span class="cta-meta">arXiv cs.CV</span>
+      <span class="cta-arrow">→</span>
+    </a>
+    
+
+    
+    <div class="highlights">
+      
+      <div class="highlight-cell">
+        <div class="highlight-value">28.29</div>
+        <div class="highlight-label">FID（提案手法）</div>
+        <div class="highlight-sub">Flux 32.12 から <strong>-3.83</strong> 改善</div>
+      </div>
+      
+      <div class="highlight-cell">
+        <div class="highlight-value">3.658</div>
+        <div class="highlight-label">NIQE（最良）</div>
+        <div class="highlight-sub">知覚画質指標で全ベースライン超え</div>
+      </div>
+      
+      <div class="highlight-cell">
+        <div class="highlight-value">5.700</div>
+        <div class="highlight-label">Aesthetic Score</div>
+        <div class="highlight-sub">CameraCtrl 5.230 を上回る美的品質</div>
+      </div>
+      
+    </div>
+    
+
+    
+    <section class="article-section">
+      <h2 class="section-label">Setting / Conditions</h2>
+      <table class="setting-table">
+        <tbody>
+          
+          <tr>
+            <th>Method</th>
+            <td>Flow-matching DiT (Diffusion Transformer)</td>
+          </tr>
+          
+          <tr>
+            <th>Representation</th>
+            <td><strong>K=4 露出ブラケット列</strong>として線形画像を分解</td>
+          </tr>
+          
+          <tr>
+            <th>Training data</th>
+            <td><strong>25k</strong> シーン参照型線形画像</td>
+          </tr>
+          
+          <tr>
+            <th>Conditions</th>
+            <td>テキストプロンプト + ControlNet による構造条件</td>
+          </tr>
+          
+          <tr>
+            <th>Architecture</th>
+            <td>Multiple Exposure Brackets Fusion module + Radiance-scale token</td>
+          </tr>
+          
+          <tr>
+            <th>応用</th>
+            <td>テキスト誘導の線形画像編集（露出・ハイライトの後処理）</td>
+          </tr>
+          
+        </tbody>
+      </table>
+    </section>
+    
+
+    
+    <section class="article-section">
+      <h2 class="section-label">FID 比較 (低いほど良い)</h2>
+      <div class="chart-frame"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1100 380" width="100%" height="100%" preserveAspectRatio="xMidYMid meet"><text x="70" y="32" font-family="Yu Gothic, Meiryo, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-size="17" font-weight="700" fill="#111827">FID 比較 (低いほど良い)</text><line x1="70" y1="324.0" x2="1076" y2="324.0" stroke="#E5E7EB" stroke-width="1"/><text x="60" y="328.0" font-family="Yu Gothic, Meiryo, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-size="11" fill="#4B5563" text-anchor="end">0</text><line x1="70" y1="257.0" x2="1076" y2="257.0" stroke="#E5E7EB" stroke-width="1"/><text x="60" y="261.0" font-family="Yu Gothic, Meiryo, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-size="11" fill="#4B5563" text-anchor="end">9.48</text><line x1="70" y1="190.0" x2="1076" y2="190.0" stroke="#E5E7EB" stroke-width="1"/><text x="60" y="194.0" font-family="Yu Gothic, Meiryo, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-size="11" fill="#4B5563" text-anchor="end">18.95</text><line x1="70" y1="123.0" x2="1076" y2="123.0" stroke="#E5E7EB" stroke-width="1"/><text x="60" y="127.0" font-family="Yu Gothic, Meiryo, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-size="11" fill="#4B5563" text-anchor="end">28.43</text><line x1="70" y1="56.0" x2="1076" y2="56.0" stroke="#E5E7EB" stroke-width="1"/><text x="60" y="60.0" font-family="Yu Gothic, Meiryo, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-size="11" fill="#4B5563" text-anchor="end">37.90</text><rect x="183.2" y="124.0" width="276.7" height="200.0" fill="#2563EB" rx="3"/><text x="321.5" y="114.0" font-family="Yu Gothic, Meiryo, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-size="14" font-weight="700" fill="#111827" text-anchor="middle">28.29</text><text x="321.5" y="348.0" font-family="Yu Gothic, Meiryo, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-size="13" fill="#111827" text-anchor="middle">提案手法</text><rect x="686.2" y="96.9" width="276.7" height="227.1" fill="#93C5FD" rx="3"/><text x="824.5" y="86.9" font-family="Yu Gothic, Meiryo, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-size="14" font-weight="700" fill="#111827" text-anchor="middle">32.12</text><text x="824.5" y="348.0" font-family="Yu Gothic, Meiryo, Hiragino Kaku Gothic ProN, Noto Sans JP, sans-serif" font-size="13" fill="#111827" text-anchor="middle">Flux</text><line x1="70" y1="324" x2="1076" y2="324" stroke="#D1D5DB" stroke-width="1.5"/></svg></div>
+    </section>
+    
+
+    
+    <section class="article-section">
+      <h2 class="section-label">Takeaways</h2>
+      <ul class="bullets">
+        
+        <li><strong>線形画像の高ダイナミックレンジ生成</strong>を、ブラケット分解という表現工夫で達成</li>
+        
+        <li>標準VAEでは暗部のディテールが失われる課題を、専用 Fusion モジュールで克服</li>
+        
+        <li>ControlNet 統合で <strong>構造条件付き生成</strong>、編集応用も実証</li>
+        
+      </ul>
+    </section>
+    
+
+    
+
+    <footer class="article-footer">
+      
+      <h2 class="section-label">Source</h2>
+      <ul class="source-list">
+        
+        <li><a href="https://arxiv.org/abs/2604.21008" target="_blank" rel="noopener">Linear Image Generation by Synthesizing Exposure Brackets (Dai et al., arXiv:2604.21008)</a></li>
+        
+        <li><a href="https://arxiv.org/html/2604.21008v1" target="_blank" rel="noopener">arXiv HTML rendering (figures included)</a></li>
+        
+      </ul>
+      
+
+      
+      <div class="keywords">
+        <span class="label">Keywords</span>
+        <span class="tag">画像生成</span><span class="tag">HDR</span><span class="tag">線形画像</span><span class="tag">DiT</span><span class="tag">Flow Matching</span><span class="tag">ControlNet</span><span class="tag">露出ブラケット</span>
+      </div>
+      
+    </footer>
+  </div>
+</article>
+
+  </main>
+
+  <footer class="site-footer">
+    <div class="container">
+      画像生成・動画生成・アニメ系AIニュースの日次まとめ
+    </div>
+  </footer>
+</body>
+</html>
